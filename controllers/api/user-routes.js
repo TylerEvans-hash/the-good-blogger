@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { User, Post, Comment } = require('../../models');
+const withAuth = require('../../utils/auth');
 
 // get all Users
 router.get('/', (req, res) => {
@@ -56,15 +57,13 @@ router.post('/', (req, res) => {
         password: req.body.password
     })
         .then(dbUserData => {
-            // req.session.save(() => {
-            //     req.session.user_id = dbUserData.id;
-            //     req.session.username = dbUserData.username:
-            //     req.session.loggedIn = true;
+            req.session.save(() => {
+                res.session.user_id = dbUserData.id;
+                req.sessions.username = dbUserData.username;
+                req.session.loggedIn = true;
 
-            //     res.json(dbUserData);
-            // });
-
-            res.json(dbUserData)
+                res.json(dbUserData);
+            });
         })
         .catch(err => {
             console.log(err);
@@ -72,12 +71,50 @@ router.post('/', (req, res) => {
         });
 });
 
-// User Loggin
+// User Login
+router.post('/login', (req, res) => {
+    User.findOne({
+        where: {
+            email: req.body.email
+        }
+    })  
+        .then(dbUserData => {
+            if (!dbUserData) {
+                res.status(400).json({ message: 'No User with that email address found' });
+                return;
+            }
+
+            const validPassword = dbUserData.checkPassword(req.body.password);
+
+            if (!validPassword) {
+                res.status(400).json({ message: 'Incorrect password!' });
+                return;
+            }
+
+            req.session.save(() => {
+                // declare session variables
+                req.session.user_id = dbUserData.id;
+                req.session.username = dbUserData.username;
+                req.session.loggedIn = true;
+    
+                res.json({ user: dbUserData, message: 'You are now logged in!' });
+            });
+        });
+});
 
 // User Logout
+router.post('/logout', withAuth, (req, res) => {
+    if (req.session.loggedIn) {
+        req.session.destroy(() => {
+            res.status(204).end();
+        });
+    } else {
+        res.status(404).end();
+    }
+});
 
 // update User
-router.put('/:id', (req, res) => {
+router.put('/:id', withAuth, (req, res) => {
     User.update(req.body, {
         individualHooks: true,
         where: {
@@ -98,7 +135,7 @@ router.put('/:id', (req, res) => {
 });
 
 // delete User
-router.delete('/:id', (req, res) => {
+router.delete('/:id', withAuth, (req, res) => {
     User.destroy({
         where: {
             id: req.params.id
