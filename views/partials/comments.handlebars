@@ -1,7 +1,7 @@
 {{#each this}}
 <article class="card">
     <div class="card-body">
-        <h6 class="card-subtitle m2 muted">Created by {{user.username}} on {{created_at}}</h6>
+        <h6 class="card-subtitle m2 muted">Created by {{user.username}} on {{format_date created_at}}</h6>
         <p class="card-text">{{comment_text}}</p>
     </div>
 </article>

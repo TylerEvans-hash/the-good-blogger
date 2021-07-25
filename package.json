@@ -4,7 +4,7 @@
   "description": "## Purpose This project is to show my knowledge and understanding of making an application that is deployed to heroku. This application will allow developers around the world to create posts, comment and upvote other users posts.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node server.js"
   },
   "repository": {
